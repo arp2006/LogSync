@@ -1,0 +1,2 @@
+{"timestamp": "2026-09-27T12:31:00Z", "device": "vpn-gateway-01", "event": "authentication_failed", "username": "alice", "src_ip": "198.51.100.44", "reason": "invalid_credentials", "client_version": "v2.4"}
+{"timestamp": "2026-09-27T12:32:10Z", "device": "vpn-gateway-01", "event": "authentication_success", "username": "bob", "src_ip": "198.51.100.88", "action": "allow", "session_id": "sess-9021"}

@@ -1,0 +1,3 @@
+<134>1 2026-09-27T12:30:15Z edge-router-01 routerd 712 - - Denied TCP connection from 10.0.1.25:51514 to 192.0.2.20:443
+<134>1 2026-09-27T12:31:00Z edge-router-01 routerd 712 - - Allowed TCP connection from 10.0.1.25:51515 to 192.0.2.20:443
+<34>Sep 27 12:32:00 edge-router-01 filter[102]: Denied TCP connection from 198.51.100.8:33221 to 192.0.2.25:22

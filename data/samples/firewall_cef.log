@@ -1,0 +1,4 @@
+CEF:0|AcmeNet|EdgeFirewall|4.2|ALLOW-001|Connection allowed|3|src=10.0.1.25 spt=51514 dst=192.0.2.20 dpt=443 proto=TCP act=allow rule=Permit_HTTPS
+CEF:0|AcmeNet|EdgeFirewall|4.2|DENY-002|Connection dropped|7|src=198.51.100.44 spt=42111 dst=192.0.2.10 dpt=22 proto=TCP act=deny rule=Block_SSH_External threat=Scanning
+CEF:0|AcmeNet|EdgeFirewall|4.2|ALLOW-003|DNS request permitted|2|src=10.0.1.50 spt=53001 dst=8.8.8.8 dpt=53 proto=UDP act=allow
+CEF:0|AcmeNet|EdgeFirewall|4.2|RESET-004|TCP Reset sent|6|src=10.0.1.99 spt=60111 dst=192.0.2.80 dpt=8080 proto=TCP act=reset
