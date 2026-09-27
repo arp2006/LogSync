@@ -86,12 +86,14 @@ class EvidenceStore:
                 if isinstance(stream_or_chunks, bytes):
                     chunks: Iterator[bytes] = iter([stream_or_chunks])
                 elif hasattr(stream_or_chunks, "read"):
+
                     def read_chunks() -> Iterator[bytes]:
                         while True:
                             chunk = stream_or_chunks.read(65536)  # 64 KB chunks
                             if not chunk:
                                 break
                             yield chunk
+
                     chunks = read_chunks()
                 else:
                     chunks = iter(stream_or_chunks)

@@ -25,6 +25,4 @@ class AuditEvent(Base):
         DateTime(timezone=True), nullable=False, default=utc_now
     )
 
-    __table_args__ = (
-        Index("ix_audit_resource", "resource_type", "resource_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_audit_resource", "resource_type", "resource_id", "created_at"),)

@@ -2,11 +2,12 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from ulpf.api.errors import APIError
 from ulpf.db import get_db
+from ulpf.models.job import IngestionJob
 from ulpf.services.ingestion_service import IngestionService
 
 router = APIRouter(prefix="/ingestion-jobs", tags=["Ingestion"])
@@ -99,4 +100,54 @@ def get_ingestion_job(
         started_at=job.started_at,
         finished_at=job.finished_at,
         error_summary=job.error_summary,
+    )
+
+
+class JobErrorItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    raw_event_id: uuid.UUID
+    parser_name: str
+    parser_version: str
+    stage: str
+    error_code: str
+    message: str
+
+
+class JobErrorsResponse(BaseModel):
+    items: list[JobErrorItem]
+    next_cursor: str | None
+
+
+@router.get("/{job_id}/errors", response_model=JobErrorsResponse)
+def get_job_errors(
+    job_id: uuid.UUID,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+) -> JobErrorsResponse:
+    from sqlalchemy import select
+
+    from ulpf.models.parser_error import ParserError
+    from ulpf.models.raw_event import RawEvent
+
+    job = db.get(IngestionJob, job_id)
+    if not job:
+        raise APIError(
+            code="JOB_NOT_FOUND",
+            message=f"Ingestion job '{job_id}' does not exist",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    stmt = (
+        select(ParserError)
+        .join(RawEvent, ParserError.raw_event_id == RawEvent.id)
+        .where(RawEvent.job_id == job_id)
+        .order_by(ParserError.created_at.desc())
+        .limit(limit)
+    )
+    errors = list(db.execute(stmt).scalars().all())
+
+    return JobErrorsResponse(
+        items=[JobErrorItem.model_validate(err) for err in errors],
+        next_cursor=None,
     )

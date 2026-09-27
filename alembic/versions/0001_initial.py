@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-09-27 10:00:00.000000
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -154,6 +155,7 @@ def upgrade() -> None:
     else:
         # Fallback for SQLite / test environments
         from ulpf.models.base import Base
+
         Base.metadata.create_all(bind=bind)
 
 
@@ -163,4 +165,5 @@ def downgrade() -> None:
         op.execute(sa.text(POSTGRES_DOWNGRADE_SQL))
     else:
         from ulpf.models.base import Base
+
         Base.metadata.drop_all(bind=bind)

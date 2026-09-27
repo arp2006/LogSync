@@ -1,0 +1,67 @@
+{
+  "name": "OCSF",
+  "version": "1.1.0",
+  "description": "Open Cybersecurity Schema Framework (Vendored & Pinned)",
+  "classes": {
+    "4001": {
+      "name": "Network Activity",
+      "category_uid": 4,
+      "class_uid": 4001,
+      "description": "Network activity events such as firewall connections, traffic, and flows",
+      "required_fields": [
+        "class_uid",
+        "category_uid",
+        "time",
+        "metadata"
+      ],
+      "optional_fields": [
+        "src_endpoint",
+        "dst_endpoint",
+        "action",
+        "action_id",
+        "severity",
+        "severity_id",
+        "activity_name",
+        "activity_id",
+        "unmapped"
+      ]
+    },
+    "3001": {
+      "name": "Authentication",
+      "category_uid": 3,
+      "class_uid": 3001,
+      "description": "Authentication and authorization events",
+      "required_fields": [
+        "class_uid",
+        "category_uid",
+        "time",
+        "metadata"
+      ],
+      "optional_fields": [
+        "user",
+        "src_endpoint",
+        "action",
+        "action_id",
+        "severity_id",
+        "unmapped"
+      ]
+    },
+    "1001": {
+      "name": "Base Event",
+      "category_uid": 1,
+      "class_uid": 1001,
+      "description": "Generic security and system activity event",
+      "required_fields": [
+        "class_uid",
+        "category_uid",
+        "time",
+        "metadata"
+      ],
+      "optional_fields": [
+        "severity_id",
+        "message",
+        "unmapped"
+      ]
+    }
+  }
+}

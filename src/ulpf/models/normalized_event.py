@@ -26,9 +26,7 @@ class NormalizedEvent(Base):
     raw_event_id: Mapped[uuid.UUID] = mapped_column(
         UUIDType, ForeignKey("raw_events.id"), unique=True, nullable=False
     )
-    source_id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType, ForeignKey("sources.id"), nullable=False
-    )
+    source_id: Mapped[uuid.UUID] = mapped_column(UUIDType, ForeignKey("sources.id"), nullable=False)
     job_id: Mapped[uuid.UUID] = mapped_column(
         UUIDType, ForeignKey("ingestion_jobs.id"), nullable=False
     )

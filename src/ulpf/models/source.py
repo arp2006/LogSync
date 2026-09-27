@@ -41,6 +41,4 @@ class Source(Base):
         "NormalizedEvent", back_populates="source", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (
-        Index("uq_sources_name", func.lower(name), unique=True),
-    )
+    __table_args__ = (Index("uq_sources_name", func.lower(name), unique=True),)

@@ -26,9 +26,7 @@ class IngestionJob(Base):
     __tablename__ = "ingestion_jobs"
 
     id: Mapped[uuid.UUID] = mapped_column(UUIDType, primary_key=True, default=uuid.uuid4)
-    source_id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType, ForeignKey("sources.id"), nullable=False
-    )
+    source_id: Mapped[uuid.UUID] = mapped_column(UUIDType, ForeignKey("sources.id"), nullable=False)
     original_filename: Mapped[str] = mapped_column(Text, nullable=False)
     input_format: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="queued")

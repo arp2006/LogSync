@@ -31,9 +31,7 @@ class RawEvent(Base):
     job_id: Mapped[uuid.UUID] = mapped_column(
         UUIDType, ForeignKey("ingestion_jobs.id"), nullable=False
     )
-    source_id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType, ForeignKey("sources.id"), nullable=False
-    )
+    source_id: Mapped[uuid.UUID] = mapped_column(UUIDType, ForeignKey("sources.id"), nullable=False)
     record_index: Mapped[int] = mapped_column(Integer, nullable=False)
     raw_bytes: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)
