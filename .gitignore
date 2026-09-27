@@ -32,3 +32,4 @@ htmlcov/
 
 data/raw/*
 !data/raw/.gitkeep
+*.db
