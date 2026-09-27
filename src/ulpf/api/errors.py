@@ -5,6 +5,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from ulpf.core.errors import APIError
+
 
 class ErrorDetail(BaseModel):
     code: str
@@ -14,14 +16,6 @@ class ErrorDetail(BaseModel):
 
 class ErrorEnvelope(BaseModel):
     error: ErrorDetail
-
-
-class APIError(Exception):
-    def __init__(self, code: str, message: str, status_code: int = status.HTTP_400_BAD_REQUEST):
-        self.code = code
-        self.message = message
-        self.status_code = status_code
-        super().__init__(message)
 
 
 def get_request_id(request: Request) -> str:

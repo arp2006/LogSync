@@ -4,8 +4,8 @@ from typing import Any, BinaryIO
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ulpf.api.errors import APIError
 from ulpf.config import settings
+from ulpf.core.errors import APIError
 from ulpf.models.audit_event import AuditEvent
 from ulpf.models.job import IngestionJob
 from ulpf.models.source import Source
