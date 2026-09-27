@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ulpf-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ulpf_user
+      POSTGRES_PASSWORD: ulpf_password
+      POSTGRES_DB: ulpf_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ulpf_user -d ulpf_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ulpf-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://ulpf_user:ulpf_password@postgres:5432/ulpf_db
+      RAW_DATA_DIR: /app/data/raw
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    volumes:
+      - raw_evidence_data:/app/data/raw
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn ulpf.main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ulpf-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+psycopg://ulpf_user:ulpf_password@postgres:5432/ulpf_db
+      RAW_DATA_DIR: /app/data/raw
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+    volumes:
+      - raw_evidence_data:/app/data/raw
+    command: python -m ulpf.worker.main
+
+volumes:
+  pgdata:
+  raw_evidence_data:
