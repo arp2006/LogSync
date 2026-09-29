@@ -1,0 +1,288 @@
+{
+  "info": {
+    "name": "ULPF — Universal Log Pre-processing Framework",
+    "_postman_id": "ulpf-collection-v1",
+    "description": "Complete API collection for ULPF.\n\n**Workflow order:**\n1. Health Check\n2. Create Source\n3. Upload Logs (multipart)\n4. Poll Job Status\n5. Search Events\n6. Fetch & Verify Raw Evidence\n7. Export JSONL\n\nSet the `base_url` variable to `http://localhost:8000` before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",  "value": "http://localhost:8000", "type": "string" },
+    { "key": "source_id", "value": "",                      "type": "string", "description": "Auto-set by 'Create Source'" },
+    { "key": "job_id",    "value": "",                      "type": "string", "description": "Auto-set by 'Upload Logs'" },
+    { "key": "raw_event_id", "value": "",                   "type": "string", "description": "Copy from Search Events response" },
+    { "key": "event_id",  "value": "",                      "type": "string", "description": "Copy from Search Events response" }
+  ],
+  "item": [
+    {
+      "name": "🟢 Health",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health/live",
+            "description": "Basic liveness probe — returns 200 if the process is running."
+          }
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health/ready",
+            "description": "Readiness probe — checks database connectivity."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📡 Sources",
+      "item": [
+        {
+          "name": "Create Source",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('source_id', body.id);",
+                  "  console.log('source_id saved:', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/sources",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"edge-firewall-01\",\n  \"source_type\": \"firewall\",\n  \"vendor\": \"AcmeNet\",\n  \"product\": \"EdgeFirewall\",\n  \"description\": \"Primary perimeter firewall\"\n}"
+            },
+            "description": "Register a new log source. The returned `id` is auto-saved as `{{source_id}}`."
+          }
+        },
+        {
+          "name": "List Sources",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/sources",
+              "query": [
+                { "key": "active_only", "value": "false", "disabled": true }
+              ]
+            },
+            "description": "List all registered sources."
+          }
+        },
+        {
+          "name": "Get Source by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/sources/{{source_id}}",
+            "description": "Fetch a single source by its UUID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📥 Ingestion",
+      "item": [
+        {
+          "name": "Upload Logs — CEF (firewall_cef.log)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('job_id', body.id);",
+                  "  console.log('job_id saved:', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/ingestion-jobs",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "source_id", "value": "{{source_id}}", "type": "text",
+                  "description": "UUID of the source (auto-set by Create Source)" },
+                { "key": "format",    "value": "cef",            "type": "text",
+                  "description": "One of: cef | syslog | json" },
+                { "key": "file",      "type": "file",
+                  "description": "Select data/samples/firewall_cef.log from disk",
+                  "src": [] }
+              ]
+            },
+            "description": "Upload a CEF log file. Returns 202 Accepted with a job ID.\n\n**How to use:**\n1. Make sure `{{source_id}}` is set (run Create Source first)\n2. In the `file` field click 'Select File' and pick `data/samples/firewall_cef.log`\n3. The response `id` is auto-saved as `{{job_id}}`"
+          }
+        },
+        {
+          "name": "Upload Logs — Syslog (router_syslog.log)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('job_id', body.id);",
+                  "  console.log('job_id saved:', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/ingestion-jobs",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "source_id", "value": "{{source_id}}", "type": "text" },
+                { "key": "format",    "value": "syslog",         "type": "text" },
+                { "key": "file",      "type": "file", "src": [],
+                  "description": "Select data/samples/router_syslog.log" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Logs — JSON (vpn_events.jsonl)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('job_id', body.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/ingestion-jobs",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "source_id", "value": "{{source_id}}", "type": "text" },
+                { "key": "format",    "value": "json",           "type": "text" },
+                { "key": "file",      "type": "file", "src": [],
+                  "description": "Select data/samples/vpn_events.jsonl" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Status",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/ingestion-jobs/{{job_id}}",
+            "description": "Poll the job until status is `completed`, `completed_with_errors`, or `failed`.\n\nStatus flow: `queued → processing → completed`"
+          }
+        },
+        {
+          "name": "Get Job Errors",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ingestion-jobs/{{job_id}}/errors?limit=50",
+              "query": [{ "key": "limit", "value": "50" }]
+            },
+            "description": "Inspect per-record parsing/validation failures for a job."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Events",
+      "item": [
+        {
+          "name": "Search Normalized Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/events?limit=20",
+              "query": [
+                { "key": "source_id", "value": "{{source_id}}", "disabled": true,
+                  "description": "Filter by source UUID" },
+                { "key": "class_uid", "value": "4001", "disabled": true,
+                  "description": "4001=Network Activity, 3001=Authentication, 1001=Base Event" },
+                { "key": "from",      "value": "2026-01-01T00:00:00Z", "disabled": true },
+                { "key": "to",        "value": "2026-12-31T23:59:59Z", "disabled": true },
+                { "key": "limit",     "value": "20" },
+                { "key": "cursor",    "value": "", "disabled": true,
+                  "description": "Paste next_cursor from previous response for pagination" }
+              ]
+            },
+            "description": "Search OCSF normalized events. All filters are optional.\n\nOCSF classes:\n- `1001` Base Event\n- `3001` Authentication\n- `4001` Network Activity"
+          }
+        },
+        {
+          "name": "Get Event by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/events/{{event_id}}",
+            "description": "Get the full OCSF payload for a single normalized event."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔒 Raw Evidence",
+      "item": [
+        {
+          "name": "Get Raw Event",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/raw-events/{{raw_event_id}}",
+            "description": "Retrieve the original raw log record including its SHA-256 hash and raw text."
+          }
+        },
+        {
+          "name": "Verify SHA-256 Integrity",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/raw-events/{{raw_event_id}}/verify",
+            "description": "Recomputes SHA-256 server-side and compares against the stored hash using `hmac.compare_digest`.\n\nResponse:\n```json\n{\n  \"stored_sha256\": \"...\",\n  \"computed_sha256\": \"...\",\n  \"matches\": true,\n  \"verified_at\": \"...\"\n}\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📤 Export",
+      "item": [
+        {
+          "name": "Export All Events (JSONL)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/exports/events?format=jsonl",
+              "query": [
+                { "key": "format",    "value": "jsonl" },
+                { "key": "source_id", "value": "{{source_id}}", "disabled": true },
+                { "key": "from",      "value": "2026-01-01T00:00:00Z", "disabled": true },
+                { "key": "to",        "value": "2026-12-31T23:59:59Z", "disabled": true }
+              ]
+            },
+            "description": "Streams all normalized events as Newline-Delimited JSON (NDJSON).\nEach line is a valid JSON object (OCSF event_data payload).\nSave the response as `export_events.jsonl` for SIEM ingestion."
+          }
+        }
+      ]
+    }
+  ]
+}
